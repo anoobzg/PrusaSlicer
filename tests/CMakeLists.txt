@@ -1,10 +1,6 @@
 # TODO Add individual tests as executables in separate directories
 # add_subirectory(<testcase>)
 
-find_package(Catch2 2.9 REQUIRED)
-
-include(Catch)
-
 set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 file(TO_NATIVE_PATH "${TEST_DATA_DIR}" TEST_DATA_DIR)
 

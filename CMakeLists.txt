@@ -11,6 +11,9 @@
 cmake_minimum_required(VERSION 3.13)
 project(PrusaSlicer)
 
+include(cmake/entry/desktop-cpp.cmake)
+__install_conan_requirements(MSVC_RUNTIME "dynamic")
+
 include("version.inc")
 include(GNUInstallDirs)
 include(CMakeDependentOption)
@@ -177,6 +180,20 @@ endforeach ()
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/inner_cmake/modules/)
+
+function(slic3r_remap_configs targets from_Cfg to_Cfg)
+    if(MSVC)
+        string(TOUPPER ${from_Cfg} from_CFG)
+    
+        foreach(tgt ${targets})
+            if(TARGET ${tgt})
+                set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
+            endif()
+        endforeach()
+    endif()
+endfunction()
+
+include(ExternalConfig) # responsible for the external dependencies
 
 enable_testing ()
 
@@ -358,138 +375,7 @@ add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 # Disable unsafe implicit wxString to const char* / std::string and vice versa. This implicit conversion breaks the UTF-8 encoding quite often.
 add_definitions(-DwxNO_UNSAFE_WXSTRING_CONV)
 
-# Find and configure boost
-if(SLIC3R_STATIC)
-    # Use static boost libraries.
-    set(Boost_USE_STATIC_LIBS ON)
-    # Use boost libraries linked statically to the C++ runtime.
-    # set(Boost_USE_STATIC_RUNTIME ON)
-endif()
-#set(Boost_DEBUG ON)
-# set(Boost_COMPILER "-mgw81")
-# boost::process was introduced first in version 1.64.0,
-# boost::beast::detail::base64 was introduced first in version 1.66.0
-set(MINIMUM_BOOST_VERSION "1.83.0")
-set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams;nowide")
-find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
-
-find_package(Eigen3 3.3.7 REQUIRED)
-
-add_library(boost_libs INTERFACE)
-add_library(boost_headeronly INTERFACE)
-
-if (APPLE)
-    # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-    target_compile_definitions(boost_headeronly INTERFACE BOOST_ASIO_DISABLE_KQUEUE)
-endif()
-
-if(NOT SLIC3R_STATIC)
-    target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
-endif()
-
-function(slic3r_remap_configs targets from_Cfg to_Cfg)
-    if(MSVC)
-        string(TOUPPER ${from_Cfg} from_CFG)
-    
-        foreach(tgt ${targets})
-            if(TARGET ${tgt})
-                set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
-            endif()
-        endforeach()
-    endif()
-endfunction()
-
-if(TARGET Boost::system)
-    message(STATUS "Boost::boost exists")
-    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-
-    # Only from cmake 3.12
-    # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
-    set(_boost_targets "")
-    foreach(comp ${_boost_components})
-        list(APPEND _boost_targets "Boost::${comp}")
-    endforeach()
-
-    target_link_libraries(boost_libs INTERFACE
-        boost_headeronly # includes the custom compile definitions as well
-        ${_boost_targets}
-        )
-    slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
-else()
-    target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
-    target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
-endif()
-
-
-
-# Find and configure intel-tbb
-if(SLIC3R_STATIC)
-    set(TBB_STATIC 1)
-endif()
-set(TBB_DEBUG 1)
-find_package(TBB REQUIRED)
-slic3r_remap_configs(TBB::tbb RelWithDebInfo Release)
-slic3r_remap_configs(TBB::tbbmalloc RelWithDebInfo Release)
-# include_directories(${TBB_INCLUDE_DIRS})
-# add_definitions(${TBB_DEFINITIONS})
-# if(MSVC)
-#     # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
-#     add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
-# endif()
-# The Intel TBB library will use the std::exception_ptr feature of C++11.
-# add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
-
-find_package(CURL REQUIRED)
-
-add_library(libcurl INTERFACE)
-target_link_libraries(libcurl INTERFACE CURL::libcurl)
-
-# Fixing curl's cmake config script bugs
-if (NOT WIN32)
-    # Required by libcurl
-    find_package(ZLIB REQUIRED)
-    target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
-else()
-    target_link_libraries(libcurl INTERFACE crypt32)
-endif()
-
-## OPTIONAL packages
-
-# Find expat. We have our overriden FindEXPAT which exports libexpat target
-# no matter what.
-find_package(EXPAT REQUIRED)
-
-add_library(libexpat INTERFACE)
-
-if (TARGET EXPAT::EXPAT ) # found by a newer Find script
-    target_link_libraries(libexpat INTERFACE EXPAT::EXPAT)
-elseif(TARGET expat::expat) # found by a config script
-    target_link_libraries(libexpat INTERFACE expat::expat)
-else() # found by an older Find script
-    target_link_libraries(libexpat INTERFACE ${EXPAT_LIBRARIES})
-endif ()
-
-find_package(PNG REQUIRED)
-
-set(OpenGL_GL_PREFERENCE "LEGACY")
-find_package(OpenGL REQUIRED)
-
-# Find glew or use bundled version
-if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
-    set(GLEW_USE_STATIC_LIBS ON)
-    set(GLEW_VERBOSE ON)
-endif()
-
-find_package(GLEW REQUIRED)
-
-# Find the Cereal serialization library
-find_package(cereal REQUIRED)
-add_library(libcereal INTERFACE)
-if (NOT TARGET cereal::cereal)
-    target_link_libraries(libcereal INTERFACE cereal)
-else()
-    target_link_libraries(libcereal INTERFACE cereal::cereal)
-endif()
+__find_outer_external_libs()
 
 # l10n
 set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
@@ -560,24 +446,6 @@ foreach(po_file ${L10N_PO_FILES})
     )
 endforeach()
 
-find_package(NLopt 1.4 REQUIRED)
-slic3r_remap_configs(NLopt::nlopt RelWithDebInfo Release)
-
-if(SLIC3R_STATIC)
-    set(OPENVDB_USE_STATIC_LIBS ON)
-    set(USE_BLOSC TRUE)
-endif ()
-
-find_package(OpenVDB 5.0 COMPONENTS openvdb)
-if(OpenVDB_FOUND)
-    slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
-    slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
-else ()
-    message(FATAL_ERROR "OpenVDB could not be found with the bundled find module. "
-                   "You can try to specify the find module location of your "
-                   "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
-endif ()
-
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(prusaslicer_copy_dlls target)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -624,7 +492,6 @@ endif()
 if(SLIC3R_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
-
 
 # Resources install target, configure fhs.hpp on UNIX
 if (WIN32)

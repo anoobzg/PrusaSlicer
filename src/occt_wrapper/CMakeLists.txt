@@ -19,38 +19,7 @@ include(GenerateExportHeader)
 
 generate_export_header(OCCTWrapper)
 
-find_package(OpenCASCADE 7.6.1 REQUIRED)
-
-set(OCCT_LIBS
-    TKXDESTEP
-    TKSTEP
-    TKSTEP209
-    TKSTEPAttr
-    TKSTEPBase
-    TKXCAF
-    TKXSBase
-    TKVCAF
-    TKCAF
-    TKLCAF
-    TKCDF
-    TKV3d
-    TKService
-    TKMesh
-    TKBO
-    TKPrim
-    TKHLR
-    TKShHealing
-    TKTopAlgo
-    TKGeomAlgo
-    TKBRep
-    TKGeomBase
-    TKG3d
-    TKG2d
-    TKMath
-    TKernel
-)
-
-slic3r_remap_configs("${OCCT_LIBS}" RelWithDebInfo Release)
+__find_opencascade_external_lib()
 
 target_include_directories(OCCTWrapper PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(OCCTWrapper PUBLIC ${OpenCASCADE_INCLUDE_DIR})

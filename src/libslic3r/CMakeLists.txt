@@ -21,10 +21,7 @@ if (TARGET OpenVDB::openvdb)
     set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp OpenVDBUtilsLegacy.hpp)
 endif()
 
-find_package(LibBGCode REQUIRED COMPONENTS Convert)
-slic3r_remap_configs(LibBGCode::bgcode_core RelWithDebInfo Release)
-slic3r_remap_configs(LibBGCode::bgcode_binarize RelWithDebInfo Release)
-slic3r_remap_configs(LibBGCode::bgcode_convert RelWithDebInfo Release)
+__find_libslic3r_external_libs()
 
 set(SLIC3R_SOURCES
     pchheader.cpp
@@ -519,11 +516,6 @@ if (SLIC3R_STATIC)
 endif ()
 set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 
-cmake_policy(PUSH)
-cmake_policy(SET CMP0011 NEW)
-find_package(CGAL REQUIRED)
-cmake_policy(POP)
-
 add_library(libslic3r_cgal STATIC
     CutSurface.hpp CutSurface.cpp
     Geometry/VoronoiUtilsCgal.hpp Geometry/VoronoiUtilsCgal.cpp
@@ -563,8 +555,6 @@ encoding_check(libslic3r)
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
-
-find_package(JPEG REQUIRED)
 
 target_link_libraries(libslic3r PRIVATE
     libnest2d

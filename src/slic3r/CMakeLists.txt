@@ -392,11 +392,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/ServiceConfig.cpp
 )
 
-find_package(NanoSVG REQUIRED)
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(OpenSSL REQUIRED)
-endif()
-
 if (APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
             Utils/RetinaHelperImpl.mm
