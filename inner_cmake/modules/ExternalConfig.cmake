@@ -179,7 +179,9 @@ macro(__find_gui_external_libs)
     #     message(STATUS "wx-config path: ${wxWidgets_CONFIG_EXECUTABLE}")
     # endif()
 
-    # find_package(NanoSVG REQUIRED)
+    find_package(NanoSVG CONFIG REQUIRED)
+    add_library(NanoSVG::nanosvg ALIAS nanosvg::nanosvg)
+    add_library(NanoSVG::nanosvgrast ALIAS nanosvg::nanosvg)
 
     # string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
     # if (PNG_FOUND AND NOT WX_PNG_BUILTIN)
@@ -216,7 +218,6 @@ macro(__find_gui_external_libs)
     # #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
     # message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
 
-    # find_package(NanoSVG REQUIRED)
     # if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     #     find_package(OpenSSL REQUIRED)
     # endif()
