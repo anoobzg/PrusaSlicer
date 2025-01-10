@@ -150,7 +150,7 @@ macro(__find_outer_external_libs)
     #     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
     # endif()
 
-    # find_package(Catch2 2.9 REQUIRED)
+    find_package(Catch2 CONFIG REQUIRED)
     # include(Catch)
 endmacro()
 

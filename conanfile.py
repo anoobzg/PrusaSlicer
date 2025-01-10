@@ -13,6 +13,7 @@ class PALRecipe(ConanFile):
         self.requires("libpng/1.6.43")
         self.requires("libjpeg-turbo/3.0.2")
         self.requires("glew/2.2.0")
+        self.requires("catch2/3.7.0")
         # self.requires("vtk/9.4.1")
         # self.requires("assimp/5.4.2")
         # self.requires("zlib/1.3.1")
