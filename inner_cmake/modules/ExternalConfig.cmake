@@ -1,72 +1,70 @@
 macro(__find_outer_external_libs)
-    # # Find and configure boost
-    # if(SLIC3R_STATIC)
-    #     # Use static boost libraries.
-    #     set(Boost_USE_STATIC_LIBS ON)
-    #     # Use boost libraries linked statically to the C++ runtime.
-    #     # set(Boost_USE_STATIC_RUNTIME ON)
+    # Find and configure boost
+    if(SLIC3R_STATIC)
+        # Use static boost libraries.
+        set(Boost_USE_STATIC_LIBS ON)
+        # Use boost libraries linked statically to the C++ runtime.
+        # set(Boost_USE_STATIC_RUNTIME ON)
+    endif()
+    #set(Boost_DEBUG ON)
+    # set(Boost_COMPILER "-mgw81")
+    # boost::process was introduced first in version 1.64.0,
+    # boost::beast::detail::base64 was introduced first in version 1.66.0
+    set(MINIMUM_BOOST_VERSION "1.83.0")
+    set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams;nowide")
+    find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
+
+    add_library(boost_libs INTERFACE)
+    add_library(boost_headeronly INTERFACE)
+
+    if (APPLE)
+        # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
+        target_compile_definitions(boost_headeronly INTERFACE BOOST_ASIO_DISABLE_KQUEUE)
+    endif()
+
+    if(NOT SLIC3R_STATIC)
+        target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
+    endif()
+
+    if(TARGET Boost::system)
+        message(STATUS "Boost::boost exists")
+        target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+
+        # Only from cmake 3.12
+        # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
+        set(_boost_targets "")
+        foreach(comp ${_boost_components})
+            list(APPEND _boost_targets "Boost::${comp}")
+        endforeach()
+
+        target_link_libraries(boost_libs INTERFACE
+            boost_headeronly # includes the custom compile definitions as well
+            ${_boost_targets}
+            )
+        slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
+    else()
+        target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
+        target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
+    endif()
+
+    find_package(Eigen3 CONFIG REQUIRED)
+
+    # Find and configure intel-tbb
+    if(SLIC3R_STATIC)
+        set(TBB_STATIC 1)
+    endif()
+    set(TBB_DEBUG 1)
+    find_package(TBB CONFIG REQUIRED)
+    slic3r_remap_configs(TBB::tbb RelWithDebInfo Release)
+    slic3r_remap_configs(TBB::tbbmalloc RelWithDebInfo Release)
+    # include_directories(${TBB_INCLUDE_DIRS})
+    # add_definitions(${TBB_DEFINITIONS})
+    # if(MSVC)
+    #     # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
+    #     add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
     # endif()
-    # #set(Boost_DEBUG ON)
-    # # set(Boost_COMPILER "-mgw81")
-    # # boost::process was introduced first in version 1.64.0,
-    # # boost::beast::detail::base64 was introduced first in version 1.66.0
-    # set(MINIMUM_BOOST_VERSION "1.83.0")
-    # set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams;nowide")
-    # find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
-
-    # find_package(Eigen3 3.3.7 REQUIRED)
-
-    # add_library(boost_libs INTERFACE)
-    # add_library(boost_headeronly INTERFACE)
-
-    # if (APPLE)
-    #     # BOOST_ASIO_DISABLE_KQUEUE : prevents a Boost ASIO bug on OS X: https://svn.boost.org/trac/boost/ticket/5339
-    #     target_compile_definitions(boost_headeronly INTERFACE BOOST_ASIO_DISABLE_KQUEUE)
-    # endif()
-
-    # if(NOT SLIC3R_STATIC)
-    #     target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
-    # endif()
-
-    # if(TARGET Boost::system)
-    #     message(STATUS "Boost::boost exists")
-    #     target_link_libraries(boost_headeronly INTERFACE Boost::boost)
-
-    #     # Only from cmake 3.12
-    #     # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
-    #     set(_boost_targets "")
-    #     foreach(comp ${_boost_components})
-    #         list(APPEND _boost_targets "Boost::${comp}")
-    #     endforeach()
-
-    #     target_link_libraries(boost_libs INTERFACE
-    #         boost_headeronly # includes the custom compile definitions as well
-    #         ${_boost_targets}
-    #         )
-    #     slic3r_remap_configs("${_boost_targets}" RelWithDebInfo Release)
-    # else()
-    #     target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
-    #     target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
-    # endif()
-
-
-
-    # # Find and configure intel-tbb
-    # if(SLIC3R_STATIC)
-    #     set(TBB_STATIC 1)
-    # endif()
-    # set(TBB_DEBUG 1)
-    # find_package(TBB REQUIRED)
-    # slic3r_remap_configs(TBB::tbb RelWithDebInfo Release)
-    # slic3r_remap_configs(TBB::tbbmalloc RelWithDebInfo Release)
-    # # include_directories(${TBB_INCLUDE_DIRS})
-    # # add_definitions(${TBB_DEFINITIONS})
-    # # if(MSVC)
-    # #     # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
-    # #     add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE)
-    # # endif()
-    # # The Intel TBB library will use the std::exception_ptr feature of C++11.
-    # # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
+    # The Intel TBB library will use the std::exception_ptr feature of C++11.
+    # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
     # find_package(CURL REQUIRED)
 
@@ -98,18 +96,22 @@ macro(__find_outer_external_libs)
     #     target_link_libraries(libexpat INTERFACE ${EXPAT_LIBRARIES})
     # endif ()
 
-    # find_package(PNG REQUIRED)
+    find_package(PNG CONFIG REQUIRED)
 
-    # set(OpenGL_GL_PREFERENCE "LEGACY")
-    # find_package(OpenGL REQUIRED)
+    # find_package(JPEG CONFIG REQUIRED)
+    find_package(libjpeg-turbo CONFIG REQUIRED)
+    add_library(JPEG::JPEG ALIAS libjpeg-turbo::libjpeg-turbo)
 
-    # # Find glew or use bundled version
-    # if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
-    #     set(GLEW_USE_STATIC_LIBS ON)
-    #     set(GLEW_VERBOSE ON)
-    # endif()
+    set(OpenGL_GL_PREFERENCE "LEGACY")
+    find_package(OpenGL REQUIRED)
 
-    # find_package(GLEW REQUIRED)
+    # Find glew or use bundled version
+    if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
+        set(GLEW_USE_STATIC_LIBS ON)
+        set(GLEW_VERBOSE ON)
+    endif()
+
+    find_package(GLEW CONFIG REQUIRED)
 
     # # Find the Cereal serialization library
     # find_package(cereal REQUIRED)
@@ -120,8 +122,8 @@ macro(__find_outer_external_libs)
     #     target_link_libraries(libcereal INTERFACE cereal::cereal)
     # endif()  
 
-    # find_package(NLopt 1.4 REQUIRED)
-    # slic3r_remap_configs(NLopt::nlopt RelWithDebInfo Release)
+    find_package(NLopt CONFIG REQUIRED)
+    slic3r_remap_configs(NLopt::nlopt RelWithDebInfo Release)
     
     # if(SLIC3R_STATIC)
     #     set(OPENVDB_USE_STATIC_LIBS ON)
@@ -177,7 +179,6 @@ macro(__find_gui_external_libs)
     #     message(STATUS "wx-config path: ${wxWidgets_CONFIG_EXECUTABLE}")
     # endif()
 
-    # find_package(JPEG MODULE QUIET)
     # find_package(NanoSVG REQUIRED)
 
     # string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
