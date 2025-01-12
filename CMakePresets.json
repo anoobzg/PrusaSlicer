@@ -26,7 +26,8 @@
         "description": "Sets debug build type and x64 arch",
         "inherits": "base",
         "cacheVariables": {
-          "CMAKE_BUILD_TYPE": "Debug"
+          "CMAKE_BUILD_TYPE": "Debug",
+          "USE_CONAN_EXTERNALS_DEPS": "ON"
         }
       },
       {
@@ -35,7 +36,8 @@
         "description": "Sets release build type",
         "inherits": "x64-debug",
         "cacheVariables": {
-          "CMAKE_BUILD_TYPE": "Release"
+          "CMAKE_BUILD_TYPE": "Release",
+          "USE_CONAN_EXTERNALS_DEPS": "ON"
         }
       },
       {

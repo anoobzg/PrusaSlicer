@@ -12,7 +12,9 @@ cmake_minimum_required(VERSION 3.13)
 project(PrusaSlicer)
 
 include(cmake/entry/desktop-cpp.cmake)
-__install_conan_requirements(MSVC_RUNTIME "dynamic")
+if(USE_CONAN_EXTERNALS_DEPS)
+    __install_conan_requirements(MSVC_RUNTIME "dynamic")
+endif()
 
 include("version.inc")
 include(GNUInstallDirs)
