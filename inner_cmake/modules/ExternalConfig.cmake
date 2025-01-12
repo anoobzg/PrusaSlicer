@@ -113,17 +113,21 @@ macro(__find_outer_external_libs)
 
     find_package(GLEW CONFIG REQUIRED)
 
-    # # Find the Cereal serialization library
-    # find_package(cereal REQUIRED)
-    # add_library(libcereal INTERFACE)
-    # if (NOT TARGET cereal::cereal)
-    #     target_link_libraries(libcereal INTERFACE cereal)
-    # else()
-    #     target_link_libraries(libcereal INTERFACE cereal::cereal)
-    # endif()  
+    # Find the Cereal serialization library
+    find_package(cereal REQUIRED)
+    add_library(libcereal INTERFACE)
+    if (NOT TARGET cereal::cereal)
+        target_link_libraries(libcereal INTERFACE cereal)
+    else()
+        target_link_libraries(libcereal INTERFACE cereal::cereal)
+    endif()  
 
     find_package(NLopt CONFIG REQUIRED)
     slic3r_remap_configs(NLopt::nlopt RelWithDebInfo Release)
+    
+    find_package(NanoSVG CONFIG REQUIRED)
+    add_library(NanoSVG::nanosvg ALIAS nanosvg::nanosvg)
+    add_library(NanoSVG::nanosvgrast ALIAS nanosvg::nanosvg)
     
     # if(SLIC3R_STATIC)
     #     set(OPENVDB_USE_STATIC_LIBS ON)
@@ -179,10 +183,6 @@ macro(__find_gui_external_libs)
     #     message(STATUS "wx-config path: ${wxWidgets_CONFIG_EXECUTABLE}")
     # endif()
 
-    find_package(NanoSVG CONFIG REQUIRED)
-    add_library(NanoSVG::nanosvg ALIAS nanosvg::nanosvg)
-    add_library(NanoSVG::nanosvgrast ALIAS nanosvg::nanosvg)
-
     # string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
     # if (PNG_FOUND AND NOT WX_PNG_BUILTIN)
     #     list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX png)
@@ -229,15 +229,12 @@ macro(__find_libslic3r_external_libs)
     slic3r_remap_configs(LibBGCode::bgcode_binarize RelWithDebInfo Release)
     slic3r_remap_configs(LibBGCode::bgcode_convert RelWithDebInfo Release)
 
-    # cmake_policy(PUSH)
-    # cmake_policy(SET CMP0011 NEW)
-    # find_package(CGAL REQUIRED)
-    # cmake_policy(POP)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0011 NEW)
+    find_package(CGAL REQUIRED)
+    cmake_policy(POP)
 
     # find_package(JPEG REQUIRED)
-
-    add_library(CGAL INTERFACE)
-    add_library(CGAL::CGAL ALIAS CGAL)
 endmacro()
 
 macro(__find_opencascade_external_lib)

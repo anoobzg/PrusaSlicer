@@ -587,6 +587,11 @@ target_link_libraries(libslic3r PUBLIC
     agg
     ankerl
     boost_headeronly
+    TBB::tbb
+    TBB::tbbmalloc
+    NanoSVG::nanosvg
+    NanoSVG::nanosvgrast
+    libcereal
 )
 
 if (APPLE)

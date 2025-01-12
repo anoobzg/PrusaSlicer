@@ -16,9 +16,9 @@ class PALRecipe(ConanFile):
         self.requires("catch2/3.7.0")
         self.requires("nanosvg/cci.20231025")
         self.requires("libbgcode/20241001")
-        # self.requires("vtk/9.4.1")
+        self.requires("cgal/5.6.1")
+        self.requires("cereal/1.3.0")
         # self.requires("assimp/5.4.2")
-        # self.requires("zlib/1.3.1")
         
     def generate(self):
         tc = CMakeToolchain(self)
