@@ -5,7 +5,6 @@ class PALRecipe(ConanFile):
     settings = "os", "build_type"
     
     def requirements(self):
-        pass
         self.requires("boost/1.83.0")
         self.requires("eigen/3.4.0")
         self.requires("nlopt/2.7.1")
