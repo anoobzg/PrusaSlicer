@@ -14,12 +14,15 @@ class PALRecipe(ConanFile):
         self.requires("libjpeg-turbo/3.0.2")
         self.requires("glew/2.2.0")
         self.requires("catch2/2.13.10")
-        self.requires("nanosvg/cci.20231025")
+        self.requires("nanosvg/fltk.20221222")
         self.requires("libbgcode/20241001")
         self.requires("cgal/5.6.1")
         self.requires("cereal/1.3.0")
         self.requires("expat/2.6.2")
         self.requires("qhull/8.1.0")
+        self.requires("wxwidgets/3.2.5")
+        self.requires("libcurl/8.9.1")
+        self.requires("openvdb/11.0.0")
 
     def generate(self):
         tc = CMakeToolchain(self)

@@ -66,19 +66,19 @@ macro(__find_outer_external_libs)
     # The Intel TBB library will use the std::exception_ptr feature of C++11.
     # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
-    # find_package(CURL REQUIRED)
+    find_package(CURL REQUIRED)
 
-    # add_library(libcurl INTERFACE)
-    # target_link_libraries(libcurl INTERFACE CURL::libcurl)
+    add_library(libcurl INTERFACE)
+    target_link_libraries(libcurl INTERFACE CURL::libcurl)
 
-    # # Fixing curl's cmake config script bugs
-    # if (NOT WIN32)
-    #     # Required by libcurl
-    #     find_package(ZLIB REQUIRED)
-    #     target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
-    # else()
-    #     target_link_libraries(libcurl INTERFACE crypt32)
-    # endif()
+    # Fixing curl's cmake config script bugs
+    if (NOT WIN32)
+        # Required by libcurl
+        find_package(ZLIB REQUIRED)
+        target_link_libraries(libcurl INTERFACE ZLIB::ZLIB)
+    else()
+        target_link_libraries(libcurl INTERFACE crypt32)
+    endif()
 
     # ## OPTIONAL packages
 
@@ -129,20 +129,20 @@ macro(__find_outer_external_libs)
     add_library(NanoSVG::nanosvg ALIAS nanosvg::nanosvg)
     add_library(NanoSVG::nanosvgrast ALIAS nanosvg::nanosvg)
     
-    # if(SLIC3R_STATIC)
-    #     set(OPENVDB_USE_STATIC_LIBS ON)
-    #     set(USE_BLOSC TRUE)
-    # endif ()
+    if(SLIC3R_STATIC)
+        set(OPENVDB_USE_STATIC_LIBS ON)
+        set(USE_BLOSC TRUE)
+    endif ()
     
-    # find_package(OpenVDB 5.0 COMPONENTS openvdb)
-    # if(OpenVDB_FOUND)
-    #     slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
-    #     slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
-    # else ()
-    #     message(FATAL_ERROR "OpenVDB could not be found with the bundled find module. "
-    #                    "You can try to specify the find module location of your "
-    #                    "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
-    # endif ()
+    find_package(OpenVDB CONFIG COMPONENTS openvdb)
+    if(OpenVDB_FOUND)
+        slic3r_remap_configs(IlmBase::Half RelWithDebInfo Release)
+        slic3r_remap_configs(Blosc::blosc RelWithDebInfo Release)
+    else ()
+        message(FATAL_ERROR "OpenVDB could not be found with the bundled find module. "
+                       "You can try to specify the find module location of your "
+                       "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
+    endif ()
 
     find_package(Qhull CONFIG REQUIRED)
     add_library(qhull INTERFACE)
@@ -159,68 +159,69 @@ macro(__find_outer_external_libs)
 endmacro()
 
 macro(__find_gui_external_libs)
-    # if(WIN32)
-    #     message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
-    # elseif(UNIX)
-    #     set(wxWidgets_USE_UNICODE ON)
-    #     if(SLIC3R_STATIC)
-    #         set(wxWidgets_USE_STATIC ON)
-    #     else()
-    #         set(wxWidgets_USE_STATIC OFF)
-    #     endif()
-    # endif()
+    if(WIN32)
+        message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
+    elseif(UNIX)
+        set(wxWidgets_USE_UNICODE ON)
+        if(SLIC3R_STATIC)
+            set(wxWidgets_USE_STATIC ON)
+        else()
+            set(wxWidgets_USE_STATIC OFF)
+        endif()
+    endif()
 
-    # if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    #     set (wxWidgets_CONFIG_OPTIONS "--toolkit=gtk${SLIC3R_GTK}")
-    # endif ()
-    # find_package(wxWidgets 3.2 MODULE REQUIRED COMPONENTS base core adv html gl webview)
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set (wxWidgets_CONFIG_OPTIONS "--toolkit=gtk${SLIC3R_GTK}")
+    endif ()
+    find_package(wxWidgets 3.2 CONFIG REQUIRED COMPONENTS base core adv html gl webview)
 
-    # include(${wxWidgets_USE_FILE})
+    message(STATUS "wxWidgets wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
+    #include(${wxWidgets_USE_FILE})
 
-    # slic3r_remap_configs(wx::wxhtml wx::wxadv wx::wxgl wx::wxcore wx::wxbase RelWithDebInfo Release)
+    slic3r_remap_configs(wx::wxhtml wx::wxadv wx::wxgl wx::wxcore wx::wxbase RelWithDebInfo Release)
 
-    # if(UNIX)
-    #     message(STATUS "wx-config path: ${wxWidgets_CONFIG_EXECUTABLE}")
-    # endif()
+    if(UNIX)
+        message(STATUS "wx-config path: ${wxWidgets_CONFIG_EXECUTABLE}")
+    endif()
 
-    # string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
-    # if (PNG_FOUND AND NOT WX_PNG_BUILTIN)
-    #     list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX png)
-    #     list(APPEND wxWidgets_LIBRARIES ${PNG_LIBRARIES})
-    # endif ()
+    string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
+    if (PNG_FOUND AND NOT WX_PNG_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX png)
+        list(APPEND wxWidgets_LIBRARIES ${PNG_LIBRARIES})
+    endif ()
 
-    # string(REGEX MATCH "wxjpeg" WX_JPEG_BUILTIN ${wxWidgets_LIBRARIES})
-    # if (JPEG_FOUND AND NOT WX_JPEG_BUILTIN)
-    #     list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX jpeg)
-    #     list(APPEND wxWidgets_LIBRARIES ${JPEG_LIBRARIES})
-    # endif ()
+    string(REGEX MATCH "wxjpeg" WX_JPEG_BUILTIN ${wxWidgets_LIBRARIES})
+    if (JPEG_FOUND AND NOT WX_JPEG_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX jpeg)
+        list(APPEND wxWidgets_LIBRARIES ${JPEG_LIBRARIES})
+    endif ()
 
-    # string(REGEX MATCH "wxexpat" WX_EXPAT_BUILTIN ${wxWidgets_LIBRARIES})
-    # if (EXPAT_FOUND AND NOT WX_EXPAT_BUILTIN)
-    #     list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX expat)
-    #     list(APPEND wxWidgets_LIBRARIES libexpat)
-    # endif ()
+    string(REGEX MATCH "wxexpat" WX_EXPAT_BUILTIN ${wxWidgets_LIBRARIES})
+    if (EXPAT_FOUND AND NOT WX_EXPAT_BUILTIN)
+        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX expat)
+        list(APPEND wxWidgets_LIBRARIES libexpat)
+    endif ()
 
-    # # This is an issue in the new wxWidgets cmake build, doesn't deal with librt
-    # find_library(LIBRT rt)
-    # if(LIBRT)
-    #     list(APPEND wxWidgets_LIBRARIES ${LIBRT})
-    # endif()
+    # This is an issue in the new wxWidgets cmake build, doesn't deal with librt
+    find_library(LIBRT rt)
+    if(LIBRT)
+        list(APPEND wxWidgets_LIBRARIES ${LIBRT})
+    endif()
 
-    # # This fixes a OpenGL linking issue on OSX. wxWidgets cmake build includes
-    # # wrong libs for opengl in the link line and it does not link to it by himself.
-    # # libslic3r_gui will link to opengl anyway, so lets override wx
-    # list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX OpenGL)
+    # This fixes a OpenGL linking issue on OSX. wxWidgets cmake build includes
+    # wrong libs for opengl in the link line and it does not link to it by himself.
+    # libslic3r_gui will link to opengl anyway, so lets override wx
+    list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX OpenGL)
 
-    # if (UNIX AND NOT APPLE)
-    #     list(APPEND wxWidgets_LIBRARIES X11 wayland-client wayland-egl EGL)
-    # endif ()
-    # #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
-    # message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
+    if (UNIX AND NOT APPLE)
+        list(APPEND wxWidgets_LIBRARIES X11 wayland-client wayland-egl EGL)
+    endif ()
+    #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
+    message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
 
-    # if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    #     find_package(OpenSSL REQUIRED)
-    # endif()
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        find_package(OpenSSL REQUIRED)
+    endif()
 endmacro()
 
 macro(__find_libslic3r_external_libs)

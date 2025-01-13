@@ -4420,7 +4420,9 @@ void Plater::load_project(const wxString& filename)
     s_multiple_beds.set_loading_project_flag(true);
     ScopeGuard guard([](){ s_multiple_beds.set_loading_project_flag(false);});
 
-    if (! load_files({ into_path(filename) }).empty()) {
+    std::vector<fs::path> paths;
+    paths.push_back(into_path(filename));
+    if (! load_files(paths).empty()) {
         // At least one file was loaded.
         p->set_project_filename(filename);
         // Save the names of active presets and project specific config into ProjectDirtyStateManager.
