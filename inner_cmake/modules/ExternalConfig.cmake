@@ -239,37 +239,37 @@ macro(__find_libslic3r_external_libs)
 endmacro()
 
 macro(__find_opencascade_external_lib)
-    # find_package(OpenCASCADE 7.6.1 REQUIRED)
+    find_package(OpenCASCADE CONFIG 7.6.0 REQUIRED)
 
-    # set(OCCT_LIBS
-    #     TKXDESTEP
-    #     TKSTEP
-    #     TKSTEP209
-    #     TKSTEPAttr
-    #     TKSTEPBase
-    #     TKXCAF
-    #     TKXSBase
-    #     TKVCAF
-    #     TKCAF
-    #     TKLCAF
-    #     TKCDF
-    #     TKV3d
-    #     TKService
-    #     TKMesh
-    #     TKBO
-    #     TKPrim
-    #     TKHLR
-    #     TKShHealing
-    #     TKTopAlgo
-    #     TKGeomAlgo
-    #     TKBRep
-    #     TKGeomBase
-    #     TKG3d
-    #     TKG2d
-    #     TKMath
-    #     TKernel
-    # )
+    set(OCCT_LIBS
+        TKXDESTEP
+        TKSTEP
+        TKSTEP209
+        TKSTEPAttr
+        TKSTEPBase
+        TKXCAF
+        TKXSBase
+        TKVCAF
+        TKCAF
+        TKLCAF
+        TKCDF
+        TKV3d
+        TKService
+        TKMesh
+        TKBO
+        TKPrim
+        TKHLR
+        TKShHealing
+        TKTopAlgo
+        TKGeomAlgo
+        TKBRep
+        TKGeomBase
+        TKG3d
+        TKG2d
+        TKMath
+        TKernel
+    )
 
-    # slic3r_remap_configs("${OCCT_LIBS}" RelWithDebInfo Release)
+    slic3r_remap_configs("${OCCT_LIBS}" RelWithDebInfo Release)
 endmacro()
 

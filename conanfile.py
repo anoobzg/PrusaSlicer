@@ -23,6 +23,7 @@ class PALRecipe(ConanFile):
         self.requires("wxwidgets/3.2.5")
         self.requires("libcurl/8.9.1")
         self.requires("openvdb/11.0.0")
+        self.requires("opencascade/7.6.0")
 
     def generate(self):
         tc = CMakeToolchain(self)
