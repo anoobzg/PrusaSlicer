@@ -82,19 +82,19 @@ macro(__find_outer_external_libs)
 
     # ## OPTIONAL packages
 
-    # # Find expat. We have our overriden FindEXPAT which exports libexpat target
-    # # no matter what.
-    # find_package(EXPAT REQUIRED)
+    # Find expat. We have our overriden FindEXPAT which exports libexpat target
+    # no matter what.
+    find_package(EXPAT REQUIRED)
 
-    # add_library(libexpat INTERFACE)
+    add_library(libexpat INTERFACE)
 
-    # if (TARGET EXPAT::EXPAT ) # found by a newer Find script
-    #     target_link_libraries(libexpat INTERFACE EXPAT::EXPAT)
-    # elseif(TARGET expat::expat) # found by a config script
-    #     target_link_libraries(libexpat INTERFACE expat::expat)
-    # else() # found by an older Find script
-    #     target_link_libraries(libexpat INTERFACE ${EXPAT_LIBRARIES})
-    # endif ()
+    if (TARGET EXPAT::EXPAT ) # found by a newer Find script
+        target_link_libraries(libexpat INTERFACE EXPAT::EXPAT)
+    elseif(TARGET expat::expat) # found by a config script
+        target_link_libraries(libexpat INTERFACE expat::expat)
+    else() # found by an older Find script
+        target_link_libraries(libexpat INTERFACE ${EXPAT_LIBRARIES})
+    endif ()
 
     find_package(PNG CONFIG REQUIRED)
 
@@ -144,15 +144,15 @@ macro(__find_outer_external_libs)
     #                    "OpenVDB installation with the OPENVDB_FIND_MODULE_PATH cache variable.")
     # endif ()
 
-    # find_package(Qhull 7.2 REQUIRED)
-    # add_library(qhull INTERFACE)
-    # if(SLIC3R_STATIC)
-    #     slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhullstatic_r" RelWithDebInfo Release)
-    #     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhullstatic_r)
-    # else()
-    #     slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhull_r" RelWithDebInfo Release)
-    #     target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
-    # endif()
+    find_package(Qhull CONFIG REQUIRED)
+    add_library(qhull INTERFACE)
+    if(SLIC3R_STATIC)
+        slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhullstatic_r" RelWithDebInfo Release)
+        target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhullstatic_r)
+    else()
+        slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhull_r" RelWithDebInfo Release)
+        target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
+    endif()
 
     find_package(Catch2 CONFIG REQUIRED)
     # include(Catch)
